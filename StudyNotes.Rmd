@@ -1,0 +1,13 @@
+---
+title: "Study Notes on James–Stein Estimation and Ridge Regression from Computer Age Statistical Inference"
+author: "Maysen Pagan"
+date: "2024-04-24"
+output: pdf_document
+---
+
+references:
+https://efron.ckirby.su.domains/papers/2021EB-concepts-methods.pdf
+
+
+# Historical Context
+
