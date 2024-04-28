@@ -1,0 +1,125 @@
+---
+title: "Study Notes on James–Stein Estimation and Ridge Regression from Computer Age Statistical Inference"
+author: "Maysen Pagan"
+format: html
+editor: visual
+---
+
+references: https://efron.ckirby.su.domains/papers/2021EB-concepts-methods.pdf
+
+https://efron.ckirby.su.domains/other/Article1977.pdf
+
+https://andrewcharlesjones.github.io/journal/james-stein-estimator.html
+
+## Historical Context
+
+-   1912-1922: R.A. Fisher discovered and established maximum likelihood estimation
+
+    -   provides nearly unbiased estimates with nearly minimum variance
+
+-   1955: Charles Stein of Stanford University discovered the phenomenon that is today known as Stein's paradox
+
+    -   went against 150 years of parameter estimation
+
+    -   went against traditional statistical theory that no other estimation rule is "better" than the use of observed averages to estimate unobserved quantities
+
+-   1961: Charles Stein and Willard James developed a method of estimation that is more accurate on average than MLE or observed average when estimating more than 2 parameters
+
+-   Idea was resisted for a long period of time before being accepted
+
+## Admissibility
+
+-   Let $\theta^*$ represent the true value of a parameter $\theta$ in some statistical model and $\hat{\theta}$ be our estimator of $\theta$ which is a function of the data
+
+-   Loss function $L(\theta^*, \hat{\theta})$ assesses quality of our estimator given observations
+
+-   Risk function $R(\theta^*, \hat{\theta}) = \mathbb{E}_{p(x|\theta^*)}[L(\theta^*, \hat{\theta}(x))]$ assesses quality of our estimator over all possible data
+
+    -   the risk of the estimator is the expectation of the loss function over the data distribution
+
+-   For two different estimators $\hat{\theta}^{(1)}$ and $\hat{\theta}^{(2)}$ with risks $R(\theta^*, \hat{\theta}^{(1)})$ and $R(\theta^*, \hat{\theta}^{(2)})$, $\hat{\theta}^{(1)}$ **dominates** $\hat{\theta}^{(2)}$ if
+
+    1.  $R(\theta^*, \hat{\theta}^{(1)}) \leq R(\theta^*, \hat{\theta}^{(2)})\;\;\forall \theta^* \in \Theta$
+    2.  $\exists \theta^*$ such that $R(\theta^*, \hat{\theta}^{(1)}) < R(\theta^*, \hat{\theta}^{(2)})$
+
+-   $\hat{\theta}^{(1)}$ is not dominated by any other estimator is therefore **admissible**
+
+-   $\hat{\theta}^{(2)}$ is dominated by $\hat{\theta}^{(1)}$ and is therefore **inadmissible**
+
+## What is the James-Stein Estimator
+
+-   Setting
+    -   $p$ Gaussian random variables $X_1, X_2, …, X_p$ where $$X_i \sim N(\mu_i, \sigma^2)$$, $i = 1,…,p$
+    -   $\sigma^2$ is known and we'd like to estimate each $\mu_i$
+-   The average is an admissible estimator if there is just one mean, $\theta$ to be estimated ($p=1$)
+-   The average is also admissible for estimating two means ($p=2$)
+-   **Stein's Paradox:** when the number of means exceeds 2 ($p\geq3$), estimating them by each of their means is an inadmissible procedure
+-   General idea: the James-Stein estimator works by shrinking individual averages to the grand average, which is the average of the averages
+-   Basic formula for James-Stein estimator: $z = \bar{y} + c(y - \bar{y})$
+    -   $\bar{y}$ is grand average of averages
+    -   $c$ is a shrinkage factor determined by observed averages $$c = 1 - \frac{(k-3)\sigma^2}{\sum(y-\bar{y})^2}$$ where $k$ is number of unknown means
+    -   $y$ is the average of a single set of data
+    -   other expressions exist but differ mainly in detail (all have common shrink factor $c$)
+
+## Simple Example
+
+-   $X_1 \sim N(\mu_1,1)$ and we would like to estimate $\mu_1$ when true value $\mu_1^* = 0$
+-   Use squared error loss function
+
+```{r}
+set.seed(677)
+mean <- 0
+sd <- 1
+x_1 <- rnorm(n=1, mean, sd)
+err <- x_1-mean
+loss <- err^2
+```
+
+```{r}
+set.seed(677)
+means <- c(1,2,-1)
+err <- replicate(10000, {
+  p <- rnorm(3, means, 1)
+  estimate <- p
+  estimate-means
+})
+risk <- mean(err^2)
+```
+
+## Baseball Example
+
+-   Each player's batting ability is normally distributed
+
+-   $n = 18$ major league baseball players
+
+-   $y$ = batting average for each player after first 45 times at bat in the 1970 season
+
+-   $\bar{y}$ = grand average (average of averages)
+
+-   $z$ = resulting shrunken value for each player which represents the James-Stein estimator of that player's batting ability
+
+    -   predicts true batting ability more accurately than individual batting averages
+
+-   $c$ = shrinking factor constant
+
+    -   if $c=1$, the James-Stein estimator for a player equals their batting average
+
+    -   determined by collection of all observed averages
+
+-   $\theta$ = true batting ability of each player which is approximated by their performance for the remainder of the 1970 season
+
+-   Example: Thurman Munson was in a slump in 1970 with $y=0.178$. $\bar{y}=0.265$ and $c=0.212$ giving that his estimated batting ability increased to $$z = 0.265 + 0.212(0.178-0.265) = 0.247$$
+
+-   Loss function: Total squared error $$\sum_{i=1}^{18}(\theta-\hat{\theta})^2$$ where $\hat{\theta}$ is $z$ or $y$
+
+-   Observed batting averages $y$ have total squared error of 0.077
+
+-   James-Stein estimators $z$ have total squared error of 0.022
+
+    -   3.5 times as accurate
+
+### Using Prior Distribution
+
+-   **Prior Distribution:** true batting abilities of all MLB players is normally distributed with $\mu = 0.270$ and $\sigma = 0.015$
+
+-   James-Stein estimator can be rewritten as $Z = m + C(y-m)$ where $y$ is again each player's observed batting average but $\bar{y}$ is replaced by $m$ which is the mean of the prior distribution and $C$ is a different shrinkage factor that depends on the standard deviation of the prior distribution
