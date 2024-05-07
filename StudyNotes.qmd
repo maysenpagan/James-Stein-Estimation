@@ -1,15 +1,9 @@
 ---
-title: "Study Notes on James–Stein Estimation and Ridge Regression from Computer Age Statistical Inference"
+title: "Study Notes on James–Stein Estimation"
 author: "Maysen Pagan"
 format: html
 editor: visual
 ---
-
-references: https://efron.ckirby.su.domains/papers/2021EB-concepts-methods.pdf
-
-https://efron.ckirby.su.domains/other/Article1977.pdf
-
-https://andrewcharlesjones.github.io/journal/james-stein-estimator.html
 
 ## Historical Context
 
@@ -56,6 +50,7 @@ https://andrewcharlesjones.github.io/journal/james-stein-estimator.html
 -   **Stein's Paradox:** when the number of means exceeds 2 ($p\geq3$), estimating them by each of their means is an inadmissible procedure
 -   General idea: the James-Stein estimator works by shrinking individual averages to the grand average, which is the average of the averages
 -   Basic formula for James-Stein estimator: $z = \bar{y} + c(y - \bar{y})$
+    -   James-Stein estimator can be viewed as a special case of empirical Bayes estimation
     -   $\bar{y}$ is grand average of averages
     -   $c$ is a shrinkage factor determined by observed averages $$c = 1 - \frac{(k-3)\sigma^2}{\sum(y-\bar{y})^2}$$ where $k$ is number of unknown means
     -   $y$ is the average of a single set of data
@@ -63,6 +58,11 @@ https://andrewcharlesjones.github.io/journal/james-stein-estimator.html
 -   Another formula for James-Stein estimator: $\hat\theta_{JS} = \left( 1-\frac{(m-2)\sigma^2}{||y||^2} \right)y$
     -   $m$ is the number of parameters
     -   $y$ is a vector of data
+    -   $||y||^2\ge0 \Rightarrow \left( 1-\frac{(m-2)\sigma^2}{||y||^2} \right) < 1$
+    -   If $||y||^2 > (m-2)\sigma^2$, then the James-Stein estimator for each $\mu_i$ is shrunk towards 0 compared to LS estimator
+        -   If the L2 norm of the data vector $y$ exceeds the variance times $m-2$, then the James-Stein estimator regularizes the estimates of each $\mu_i$ by shrinking them to 0
+    -   If $||y||^2 < (m-2)\sigma^2$, then the James-Stein estimator for each $\mu_i$ flips the sign
+-   James-Stein estimator has many expressions because you can shrink each $\mu_i$ towards any pre-chosen, arbitrary point
 
 ## Simple Example
 
@@ -147,7 +147,7 @@ risk <- mean(err^2)
 
 the risk of the MLE estimator is approximately 1.005 while the risk of the James-Stein estimator is 0.9307. The MLE is now inadmissible.
 
-## Baseball Example
+## Simple Baseball Example
 
 -   Each player's batting ability is normally distributed
 
@@ -171,6 +171,8 @@ the risk of the MLE estimator is approximately 1.005 while the risk of the James
 
 -   Example: Thurman Munson was in a slump in 1970 with $y=0.178$. $\bar{y}=0.265$ and $c=0.212$ giving that his estimated batting ability increased to $$z = 0.265 + 0.212(0.178-0.265) = 0.247$$
 
+    -   James-Stein estimator can also be thought of as a "shrinkage" estimator that shrinks the estimated batting ability to the overall average of the data points which is the grand average $\bar{y} = 0.265$
+
 -   Loss function: Total squared error $$\sum_{i=1}^{18}(\theta-\hat{\theta})^2$$ where $\hat{\theta}$ is $z$ or $y$
 
 -   Observed batting averages $y$ have total squared error of 0.077
@@ -179,8 +181,124 @@ the risk of the MLE estimator is approximately 1.005 while the risk of the James
 
     -   3.5 times as accurate
 
-### Using Prior Distribution
+### Comparing MLE and James-Stein for Estimating Batting Averages
 
--   **Prior Distribution:** true batting abilities of all MLB players is normally distributed with $\mu = 0.270$ and $\sigma = 0.015$
+-   Following this [code](https://bookdown.org/content/922/james-stein.html)
 
--   James-Stein estimator can be rewritten as $Z = m + C(y-m)$ where $y$ is again each player's observed batting average but $\bar{y}$ is replaced by $m$ which is the mean of the prior distribution and $C$ is a different shrinkage factor that depends on the standard deviation of the prior distribution
+-   $\hat{\theta}^{JS}= \bar{p} + \left[ 1 - \frac{(k-3)\sigma^2}{\sum(p-\bar{p})^2} \right](p - \bar{p})$
+
+-   goal is to estimate batting averages **TRUTH**, $P_i$
+
+-   randomly sample 30 players w/ total hits above 500
+
+-   $p_i$ is each player's MLE value - batting average in M at bats
+
+    -   in following example, M is different for each player so the median at bats was taken $(M=1533)$
+
+    -   $p_i \sim Bi(1533, P_i)/1533$
+
+    -   Using the Normal approximation
+
+        -   $\mu = \frac{1533*P_i}{1533} = P_i$
+
+        -   $\sigma^2 = \frac{1533*\bar{p}*(1-\bar{p})}{1533^2} = \frac{\bar{p}*(1-\bar{p})}{15815335.5}$
+
+        -   $\Rightarrow p_i \sim N(P_i, \sigma^2_0)$ where $\sigma^2_0 = \frac{\bar{p}(1-\bar{p})}{1533}$
+
+-   Randomly select 30 players w/ total hits \> 500
+
+```{r}
+library(Lahman)
+suppressPackageStartupMessages(library(tidyverse))
+set.seed(50)
+
+players <- Batting %>% 
+  group_by(playerID) %>% 
+  summarise(AB_total = sum(AB), 
+            H_total = sum(H)) %>% 
+  na.omit() %>% 
+  filter(H_total>500) %>%  
+  sample_n(size=30) %>%    
+  pull(playerID)            
+```
+
+-   Calculate the batting averages **TRUTH** for each player (across all seasons, total hits/total at bats) that we will try to estimate using MLE and James-Stein estimators
+
+```{r}
+TRUTH <- Batting %>% 
+  filter(playerID %in% players) %>% 
+  group_by(playerID) %>% 
+  summarise(AB_total = sum(AB), 
+            H_total = sum(H)) %>% 
+  mutate(TRUTH = H_total/AB_total) %>% 
+  select(playerID,TRUTH)
+```
+
+-   Randomly select 5 observations/years for each player as sample
+-   MLE = total hits/total at bats for those 5 observations
+
+```{r}
+set.seed(50)
+obs <- Batting %>% 
+  filter(playerID %in% players) %>% 
+  group_by(playerID) %>%
+  do(sample_n(., 5))  %>%       
+  group_by(playerID) %>% 
+  summarise(AB_total = sum(AB), 
+            H_total = sum(H)) %>% 
+  mutate(MLE = H_total/AB_total) %>% 
+  select(playerID,MLE,AB_total) %>% 
+  inner_join(TRUTH,by="playerID")
+```
+
+-   Calculate James-Stein estimator using formula above
+-   Get data frame that includes each estimator and the truth for each player
+
+```{r}
+p_=mean(obs$MLE)
+N = length(obs$MLE)
+df <- obs %>% 
+  mutate(sigma2 = (p_*(1-p_))/median(obs$AB_total),
+         JS=p_+(1-((N-3)*sigma2/(sum((MLE-p_)^2))))*(MLE-p_)) %>% 
+  select(-AB_total,-sigma2)
+```
+
+-   Plot to show shrinkage
+
+```{r}
+df %>% 
+  gather(type,value,2:4) %>% 
+  mutate(is_truth=+(type=="TRUTH")) %>% 
+  mutate(type = factor(type, levels = c("TRUTH","JS","MLE"))) %>%
+  arrange(playerID, type) %>% 
+  ggplot(aes(x=value,y=type))+
+  geom_path(aes(group=playerID),lty=2,color="lightgrey")+
+  scale_color_manual(values=c("lightgrey", "skyblue"))+ #truth==skyblue
+  geom_point(aes(color=factor(is_truth)))+
+  guides(color=FALSE)+ #remove legend
+  labs(title="The James-Stein Estimator Shrinks the MLE")+
+  theme_minimal()
+```
+
+-   Compare the predictions overall between MLE and James-Stein
+    -   $\sum_i(MLE_i - TRUTH_i)^2$ and $\sum_i(JS_i - TRUTH_i)^2$
+
+```{r}
+errors <- df %>% 
+  mutate(mle_pred_error_i = (MLE-TRUTH)^2,
+         js_pred_error_i = (JS-TRUTH)^2) %>% 
+  summarise(js_pred_error = sum(js_pred_error_i),
+            mle_pred_error = sum(mle_pred_error_i))
+```
+
+-   $0.00247 < 0.00360 \Rightarrow \mathop{\mathbb{E}} \left [||\hat{\mu}^{JS} - \mu||^2 \right] < \left [||\hat{\mu}^{MLE} - \mu||^2 \right]$
+
+## References
+
+-   <https://hastie.su.domains/CASI_files/PDF/casi.pdf>
+
+-   <https://efron.ckirby.su.domains/papers/2021EB-concepts-methods.pdf>
+
+-   <https://efron.ckirby.su.domains/other/Article1977.pdf>
+
+-   <https://andrewcharlesjones.github.io/journal/james-stein-estimator.html>

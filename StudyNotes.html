@@ -8,7 +8,7 @@
 
 <meta name="author" content="Maysen Pagan">
 
-<title>Study Notes on James–Stein Estimation and Ridge Regression from Computer Age Statistical Inference</title>
+<title>Study Notes on James–Stein Estimation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -82,7 +82,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Study Notes on James–Stein Estimation and Ridge Regression from Computer Age Statistical Inference</h1>
+<h1 class="title">Study Notes on James–Stein Estimation</h1>
 </div>
 
 
@@ -103,9 +103,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>references: https://efron.ckirby.su.domains/papers/2021EB-concepts-methods.pdf</p>
-<p>https://efron.ckirby.su.domains/other/Article1977.pdf</p>
-<p>https://andrewcharlesjones.github.io/journal/james-stein-estimator.html</p>
 <section id="historical-context" class="level2">
 <h2 class="anchored" data-anchor-id="historical-context">Historical Context</h2>
 <ul>
@@ -154,6 +151,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>General idea: the James-Stein estimator works by shrinking individual averages to the grand average, which is the average of the averages</li>
 <li>Basic formula for James-Stein estimator: <span class="math inline">\(z = \bar{y} + c(y - \bar{y})\)</span>
 <ul>
+<li>James-Stein estimator can be viewed as a special case of empirical Bayes estimation</li>
 <li><span class="math inline">\(\bar{y}\)</span> is grand average of averages</li>
 <li><span class="math inline">\(c\)</span> is a shrinkage factor determined by observed averages <span class="math display">\[c = 1 - \frac{(k-3)\sigma^2}{\sum(y-\bar{y})^2}\]</span> where <span class="math inline">\(k\)</span> is number of unknown means</li>
 <li><span class="math inline">\(y\)</span> is the average of a single set of data</li>
@@ -163,7 +161,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><span class="math inline">\(m\)</span> is the number of parameters</li>
 <li><span class="math inline">\(y\)</span> is a vector of data</li>
+<li><span class="math inline">\(||y||^2\ge0 \Rightarrow \left( 1-\frac{(m-2)\sigma^2}{||y||^2} \right) &lt; 1\)</span></li>
+<li>If <span class="math inline">\(||y||^2 &gt; (m-2)\sigma^2\)</span>, then the James-Stein estimator for each <span class="math inline">\(\mu_i\)</span> is shrunk towards 0 compared to LS estimator
+<ul>
+<li>If the L2 norm of the data vector <span class="math inline">\(y\)</span> exceeds the variance times <span class="math inline">\(m-2\)</span>, then the James-Stein estimator regularizes the estimates of each <span class="math inline">\(\mu_i\)</span> by shrinking them to 0</li>
 </ul></li>
+<li>If <span class="math inline">\(||y||^2 &lt; (m-2)\sigma^2\)</span>, then the James-Stein estimator for each <span class="math inline">\(\mu_i\)</span> flips the sign</li>
+</ul></li>
+<li>James-Stein estimator has many expressions because you can shrink each <span class="math inline">\(\mu_i\)</span> towards any pre-chosen, arbitrary point</li>
 </ul>
 </section>
 <section id="simple-example" class="level2">
@@ -242,8 +247,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>the risk of the MLE estimator is approximately 1.005 while the risk of the James-Stein estimator is 0.9307. The MLE is now inadmissible.</p>
 </section>
-<section id="baseball-example" class="level2">
-<h2 class="anchored" data-anchor-id="baseball-example">Baseball Example</h2>
+<section id="simple-baseball-example" class="level2">
+<h2 class="anchored" data-anchor-id="simple-baseball-example">Simple Baseball Example</h2>
 <ul>
 <li><p>Each player’s batting ability is normally distributed</p></li>
 <li><p><span class="math inline">\(n = 18\)</span> major league baseball players</p></li>
@@ -259,7 +264,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>determined by collection of all observed averages</p></li>
 </ul></li>
 <li><p><span class="math inline">\(\theta\)</span> = true batting ability of each player which is approximated by their performance for the remainder of the 1970 season</p></li>
-<li><p>Example: Thurman Munson was in a slump in 1970 with <span class="math inline">\(y=0.178\)</span>. <span class="math inline">\(\bar{y}=0.265\)</span> and <span class="math inline">\(c=0.212\)</span> giving that his estimated batting ability increased to <span class="math display">\[z = 0.265 + 0.212(0.178-0.265) = 0.247\]</span></p></li>
+<li><p>Example: Thurman Munson was in a slump in 1970 with <span class="math inline">\(y=0.178\)</span>. <span class="math inline">\(\bar{y}=0.265\)</span> and <span class="math inline">\(c=0.212\)</span> giving that his estimated batting ability increased to <span class="math display">\[z = 0.265 + 0.212(0.178-0.265) = 0.247\]</span></p>
+<ul>
+<li>James-Stein estimator can also be thought of as a “shrinkage” estimator that shrinks the estimated batting ability to the overall average of the data points which is the grand average <span class="math inline">\(\bar{y} = 0.265\)</span></li>
+</ul></li>
 <li><p>Loss function: Total squared error <span class="math display">\[\sum_{i=1}^{18}(\theta-\hat{\theta})^2\]</span> where <span class="math inline">\(\hat{\theta}\)</span> is <span class="math inline">\(z\)</span> or <span class="math inline">\(y\)</span></p></li>
 <li><p>Observed batting averages <span class="math inline">\(y\)</span> have total squared error of 0.077</p></li>
 <li><p>James-Stein estimators <span class="math inline">\(z\)</span> have total squared error of 0.022</p>
@@ -267,13 +275,131 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>3.5 times as accurate</li>
 </ul></li>
 </ul>
-<section id="using-prior-distribution" class="level3">
-<h3 class="anchored" data-anchor-id="using-prior-distribution">Using Prior Distribution</h3>
+<section id="comparing-mle-and-james-stein-for-estimating-batting-averages" class="level3">
+<h3 class="anchored" data-anchor-id="comparing-mle-and-james-stein-for-estimating-batting-averages">Comparing MLE and James-Stein for Estimating Batting Averages</h3>
 <ul>
-<li><p><strong>Prior Distribution:</strong> true batting abilities of all MLB players is normally distributed with <span class="math inline">\(\mu = 0.270\)</span> and <span class="math inline">\(\sigma = 0.015\)</span></p></li>
-<li><p>James-Stein estimator can be rewritten as <span class="math inline">\(Z = m + C(y-m)\)</span> where <span class="math inline">\(y\)</span> is again each player’s observed batting average but <span class="math inline">\(\bar{y}\)</span> is replaced by <span class="math inline">\(m\)</span> which is the mean of the prior distribution and <span class="math inline">\(C\)</span> is a different shrinkage factor that depends on the standard deviation of the prior distribution</p></li>
+<li><p>Following this <a href="https://bookdown.org/content/922/james-stein.html">code</a></p></li>
+<li><p><span class="math inline">\(\hat{\theta}^{JS}= \bar{p} + \left[ 1 - \frac{(k-3)\sigma^2}{\sum(p-\bar{p})^2} \right](p - \bar{p})\)</span></p></li>
+<li><p>goal is to estimate batting averages <strong>TRUTH</strong>, <span class="math inline">\(P_i\)</span></p></li>
+<li><p>randomly sample 30 players w/ total hits above 500</p></li>
+<li><p><span class="math inline">\(p_i\)</span> is each player’s MLE value - batting average in M at bats</p>
+<ul>
+<li><p>in following example, M is different for each player so the median at bats was taken <span class="math inline">\((M=1533)\)</span></p></li>
+<li><p><span class="math inline">\(p_i \sim Bi(1533, P_i)/1533\)</span></p></li>
+<li><p>Using the Normal approximation</p>
+<ul>
+<li><p><span class="math inline">\(\mu = \frac{1533*P_i}{1533} = P_i\)</span></p></li>
+<li><p><span class="math inline">\(\sigma^2 = \frac{1533*\bar{p}*(1-\bar{p})}{1533^2} = \frac{\bar{p}*(1-\bar{p})}{15815335.5}\)</span></p></li>
+<li><p><span class="math inline">\(\Rightarrow p_i \sim N(P_i, \sigma^2_0)\)</span> where <span class="math inline">\(\sigma^2_0 = \frac{\bar{p}(1-\bar{p})}{1533}\)</span></p></li>
+</ul></li>
+</ul></li>
+<li><p>Randomly select 30 players w/ total hits &gt; 500</p></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Lahman)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">suppressPackageStartupMessages</span>(<span class="fu">library</span>(tidyverse))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">50</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>players <span class="ot">&lt;-</span> Batting <span class="sc">%&gt;%</span> </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(playerID) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">AB_total =</span> <span class="fu">sum</span>(AB), </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">H_total =</span> <span class="fu">sum</span>(H)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">na.omit</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(H_total<span class="sc">&gt;</span><span class="dv">500</span>) <span class="sc">%&gt;%</span>  </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample_n</span>(<span class="at">size=</span><span class="dv">30</span>) <span class="sc">%&gt;%</span>    </span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(playerID)            </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Calculate the batting averages <strong>TRUTH</strong> for each player (across all seasons, total hits/total at bats) that we will try to estimate using MLE and James-Stein estimators</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>TRUTH <span class="ot">&lt;-</span> Batting <span class="sc">%&gt;%</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(playerID <span class="sc">%in%</span> players) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(playerID) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">AB_total =</span> <span class="fu">sum</span>(AB), </span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">H_total =</span> <span class="fu">sum</span>(H)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">TRUTH =</span> H_total<span class="sc">/</span>AB_total) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(playerID,TRUTH)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Randomly select 5 observations/years for each player as sample</li>
+<li>MLE = total hits/total at bats for those 5 observations</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">50</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>obs <span class="ot">&lt;-</span> Batting <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(playerID <span class="sc">%in%</span> players) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(playerID) <span class="sc">%&gt;%</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">do</span>(<span class="fu">sample_n</span>(., <span class="dv">5</span>))  <span class="sc">%&gt;%</span>       </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(playerID) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">AB_total =</span> <span class="fu">sum</span>(AB), </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">H_total =</span> <span class="fu">sum</span>(H)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">MLE =</span> H_total<span class="sc">/</span>AB_total) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(playerID,MLE,AB_total) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(TRUTH,<span class="at">by=</span><span class="st">"playerID"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Calculate James-Stein estimator using formula above</li>
+<li>Get data frame that includes each estimator and the truth for each player</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>p_<span class="ot">=</span><span class="fu">mean</span>(obs<span class="sc">$</span>MLE)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">=</span> <span class="fu">length</span>(obs<span class="sc">$</span>MLE)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> obs <span class="sc">%&gt;%</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sigma2 =</span> (p_<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p_))<span class="sc">/</span><span class="fu">median</span>(obs<span class="sc">$</span>AB_total),</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">JS=</span>p_<span class="sc">+</span>(<span class="dv">1</span><span class="sc">-</span>((N<span class="dv">-3</span>)<span class="sc">*</span>sigma2<span class="sc">/</span>(<span class="fu">sum</span>((MLE<span class="sc">-</span>p_)<span class="sc">^</span><span class="dv">2</span>))))<span class="sc">*</span>(MLE<span class="sc">-</span>p_)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>AB_total,<span class="sc">-</span>sigma2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>Plot to show shrinkage</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gather</span>(type,value,<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">is_truth=</span><span class="sc">+</span>(type<span class="sc">==</span><span class="st">"TRUTH"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="fu">factor</span>(type, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"TRUTH"</span>,<span class="st">"JS"</span>,<span class="st">"MLE"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(playerID, type) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>value,<span class="at">y=</span>type))<span class="sc">+</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_path</span>(<span class="fu">aes</span>(<span class="at">group=</span>playerID),<span class="at">lty=</span><span class="dv">2</span>,<span class="at">color=</span><span class="st">"lightgrey"</span>)<span class="sc">+</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">"lightgrey"</span>, <span class="st">"skyblue"</span>))<span class="sc">+</span> <span class="co">#truth==skyblue</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color=</span><span class="fu">factor</span>(is_truth)))<span class="sc">+</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color=</span><span class="cn">FALSE</span>)<span class="sc">+</span> <span class="co">#remove legend</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"The James-Stein Estimator Shrinks the MLE"</span>)<span class="sc">+</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The `&lt;scale&gt;` argument of `guides()` cannot be `FALSE`. Use "none" instead as
+of ggplot2 3.3.4.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="StudyNotes_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ul>
+<li>Compare the predictions overall between MLE and James-Stein
+<ul>
+<li><span class="math inline">\(\sum_i(MLE_i - TRUTH_i)^2\)</span> and <span class="math inline">\(\sum_i(JS_i - TRUTH_i)^2\)</span></li>
+</ul></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>errors <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mle_pred_error_i =</span> (MLE<span class="sc">-</span>TRUTH)<span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">js_pred_error_i =</span> (JS<span class="sc">-</span>TRUTH)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">js_pred_error =</span> <span class="fu">sum</span>(js_pred_error_i),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">mle_pred_error =</span> <span class="fu">sum</span>(mle_pred_error_i))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li><span class="math inline">\(0.00247 &lt; 0.00360 \Rightarrow \mathop{\mathbb{E}} \left [||\hat{\mu}^{JS} - \mu||^2 \right] &lt; \left [||\hat{\mu}^{MLE} - \mu||^2 \right]\)</span></li>
 </ul>
 </section>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li><p><a href="https://hastie.su.domains/CASI_files/PDF/casi.pdf" class="uri">https://hastie.su.domains/CASI_files/PDF/casi.pdf</a></p></li>
+<li><p><a href="https://efron.ckirby.su.domains/papers/2021EB-concepts-methods.pdf" class="uri">https://efron.ckirby.su.domains/papers/2021EB-concepts-methods.pdf</a></p></li>
+<li><p><a href="https://efron.ckirby.su.domains/other/Article1977.pdf" class="uri">https://efron.ckirby.su.domains/other/Article1977.pdf</a></p></li>
+<li><p><a href="https://andrewcharlesjones.github.io/journal/james-stein-estimator.html" class="uri">https://andrewcharlesjones.github.io/journal/james-stein-estimator.html</a></p></li>
+</ul>
 </section>
 
 </main>
