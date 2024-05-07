@@ -50,11 +50,15 @@ editor: visual
 -   **Stein's Paradox:** when the number of means exceeds 2 ($p\geq3$), estimating them by each of their means is an inadmissible procedure
 -   General idea: the James-Stein estimator works by shrinking individual averages to the grand average, which is the average of the averages
 -   Basic formula for James-Stein estimator: $z = \bar{y} + c(y - \bar{y})$
-    -   James-Stein estimator can be viewed as a special case of empirical Bayes estimation
     -   $\bar{y}$ is grand average of averages
     -   $c$ is a shrinkage factor determined by observed averages $$c = 1 - \frac{(k-3)\sigma^2}{\sum(y-\bar{y})^2}$$ where $k$ is number of unknown means
     -   $y$ is the average of a single set of data
     -   other expressions exist but differ mainly in detail (all have common shrink factor $c$)
+-   James-Stein estimator can be viewed as a special case of empirical Bayes estimation
+    -   $\hat{\mu}^\text{Bayes} = M + B(x-M)$
+    -   grand mean $\bar{y}$ is an unbiased estimator of $M$
+    -   $1 - \frac{N-3}{S}$ where $S = \sum_{i=1}^N(x_i-\bar{x})^2$ is an unbiased estimator of B
+    -   Therefore, the James-Stein estimator is the plug in version of the Bayes estimator
 -   Another formula for James-Stein estimator: $\hat\theta_{JS} = \left( 1-\frac{(m-2)\sigma^2}{||y||^2} \right)y$
     -   $m$ is the number of parameters
     -   $y$ is a vector of data
@@ -275,7 +279,7 @@ df %>%
   geom_path(aes(group=playerID),lty=2,color="lightgrey")+
   scale_color_manual(values=c("lightgrey", "skyblue"))+ #truth==skyblue
   geom_point(aes(color=factor(is_truth)))+
-  guides(color=FALSE)+ #remove legend
+  guides(color="none")+ #remove legend
   labs(title="The James-Stein Estimator Shrinks the MLE")+
   theme_minimal()
 ```

@@ -151,11 +151,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>General idea: the James-Stein estimator works by shrinking individual averages to the grand average, which is the average of the averages</li>
 <li>Basic formula for James-Stein estimator: <span class="math inline">\(z = \bar{y} + c(y - \bar{y})\)</span>
 <ul>
-<li>James-Stein estimator can be viewed as a special case of empirical Bayes estimation</li>
 <li><span class="math inline">\(\bar{y}\)</span> is grand average of averages</li>
 <li><span class="math inline">\(c\)</span> is a shrinkage factor determined by observed averages <span class="math display">\[c = 1 - \frac{(k-3)\sigma^2}{\sum(y-\bar{y})^2}\]</span> where <span class="math inline">\(k\)</span> is number of unknown means</li>
 <li><span class="math inline">\(y\)</span> is the average of a single set of data</li>
 <li>other expressions exist but differ mainly in detail (all have common shrink factor <span class="math inline">\(c\)</span>)</li>
+</ul></li>
+<li>James-Stein estimator can be viewed as a special case of empirical Bayes estimation
+<ul>
+<li><span class="math inline">\(\hat{\mu}^\text{Bayes} = M + B(x-M)\)</span></li>
+<li>grand mean <span class="math inline">\(\bar{y}\)</span> is an unbiased estimator of <span class="math inline">\(M\)</span></li>
+<li><span class="math inline">\(1 - \frac{N-3}{S}\)</span> where <span class="math inline">\(S = \sum_{i=1}^N(x_i-\bar{x})^2\)</span> is an unbiased estimator of B</li>
+<li>Therefore, the James-Stein estimator is the plug in version of the Bayes estimator</li>
 </ul></li>
 <li>Another formula for James-Stein estimator: <span class="math inline">\(\hat\theta_{JS} = \left( 1-\frac{(m-2)\sigma^2}{||y||^2} \right)y\)</span>
 <ul>
@@ -363,13 +369,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_path</span>(<span class="fu">aes</span>(<span class="at">group=</span>playerID),<span class="at">lty=</span><span class="dv">2</span>,<span class="at">color=</span><span class="st">"lightgrey"</span>)<span class="sc">+</span></span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values=</span><span class="fu">c</span>(<span class="st">"lightgrey"</span>, <span class="st">"skyblue"</span>))<span class="sc">+</span> <span class="co">#truth==skyblue</span></span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color=</span><span class="fu">factor</span>(is_truth)))<span class="sc">+</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color=</span><span class="cn">FALSE</span>)<span class="sc">+</span> <span class="co">#remove legend</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color=</span><span class="st">"none"</span>)<span class="sc">+</span> <span class="co">#remove legend</span></span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"The James-Stein Estimator Shrinks the MLE"</span>)<span class="sc">+</span></span>
 <span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: The `&lt;scale&gt;` argument of `guides()` cannot be `FALSE`. Use "none" instead as
-of ggplot2 3.3.4.</code></pre>
-</div>
 <div class="cell-output-display">
 <p><img src="StudyNotes_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -381,11 +383,11 @@ of ggplot2 3.3.4.</code></pre>
 </ul></li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>errors <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mle_pred_error_i =</span> (MLE<span class="sc">-</span>TRUTH)<span class="sc">^</span><span class="dv">2</span>,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">js_pred_error_i =</span> (JS<span class="sc">-</span>TRUTH)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">js_pred_error =</span> <span class="fu">sum</span>(js_pred_error_i),</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">mle_pred_error =</span> <span class="fu">sum</span>(mle_pred_error_i))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>errors <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mle_pred_error_i =</span> (MLE<span class="sc">-</span>TRUTH)<span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">js_pred_error_i =</span> (JS<span class="sc">-</span>TRUTH)<span class="sc">^</span><span class="dv">2</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">js_pred_error =</span> <span class="fu">sum</span>(js_pred_error_i),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">mle_pred_error =</span> <span class="fu">sum</span>(mle_pred_error_i))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li><span class="math inline">\(0.00247 &lt; 0.00360 \Rightarrow \mathop{\mathbb{E}} \left [||\hat{\mu}^{JS} - \mu||^2 \right] &lt; \left [||\hat{\mu}^{MLE} - \mu||^2 \right]\)</span></li>
